@@ -1,95 +1,103 @@
+// ...existing code...
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
-int main() {
-    // Declaração das variáveis da Carta 1
-    char estado1;
-    char codigo1[4];
-    char nomeCidade1[50];
-    int populacao1;
-    float area1;
-    float pib1;
-    int pontosTuristicos1;
+#define MAX_COD 5
+#define MAX_NOME 100
+#define NUM_CARTAS 2
+#define BUF_SIZE 128
 
-    // Declaração das variáveis da Carta 2
-    char estado2;
-    char codigo2[4];
-    char nomeCidade2[50];
-    int populacao2;
-    float area2;
-    float pib2;
-    int pontosTuristicos2;
+typedef struct {
+    char estado;                 // A-H
+    char codigo[MAX_COD];        // ex: A01
+    char nomeCidade[MAX_NOME];
+    int populacao;
+    float area;
+    float pib;
+    int pontosTuristicos;
+} Carta;
 
-    // =========================
-    // Entrada de dados da Carta 1
-    // =========================
-    printf("=== Cadastro da Carta 1 ===\n");
-    printf("Digite o Estado (A-H): ");
-    scanf(" %c", &estado1);
+static void trim_newline(char *s) {
+    size_t l = strlen(s);
+    if (l && s[l-1] == '\n') s[l-1] = '\0';
+}
 
-    printf("Digite o Código da carta (ex: A01): ");
-    scanf("%s", codigo1);
+static void read_line(const char *prompt, char *out, size_t len) {
+    char buf[BUF_SIZE];
+    while (1) {
+        printf("%s", prompt);
+        if (!fgets(buf, sizeof(buf), stdin)) {
+            out[0] = '\0';
+            return;
+        }
+        trim_newline(buf);
+        if (strlen(buf) < len) {
+            strncpy(out, buf, len);
+            out[len-1] = '\0';
+            return;
+        }
+        printf("Entrada muito longa. Tente novamente.\n");
+    }
+}
 
-    printf("Digite o Nome da Cidade: ");
-    scanf(" %[^\n]", nomeCidade1); // Lê nome com espaços
+static char read_estado(const char *prompt) {
+    char buf[BUF_SIZE];
+    while (1) {
+        read_line(prompt, buf, sizeof(buf));
+        if (strlen(buf) == 1) {
+            char c = toupper((unsigned char)buf[0]);
+            if (c >= 'A' && c <= 'H') return c;
+        }
+        printf("Estado inválido. Digite uma letra de A a H.\n");
+    }
+}
 
-    printf("Digite a População: ");
-    scanf("%d", &populacao1);
+static int read_int(const char *prompt) {
+    char buf[BUF_SIZE];
+    int v;
+    while (1) {
+        read_line(prompt, buf, sizeof(buf));
+        if (sscanf(buf, "%d", &v) == 1) return v;
+        printf("Número inteiro inválido. Tente novamente.\n");
+    }
+}
 
-    printf("Digite a Área (em km²): ");
-    scanf("%f", &area1);
+static float read_float(const char *prompt) {
+    char buf[BUF_SIZE];
+    float f;
+    while (1) {
+        read_line(prompt, buf, sizeof(buf));
+        if (sscanf(buf, "%f", &f) == 1) return f;
+        printf("Número inválido. Tente novamente.\n");
+    }
+}
 
-    printf("Digite o PIB (em bilhões de reais): ");
-    scanf("%f", &pib1);
+int main(void) {
+    Carta cartas[NUM_CARTAS];
 
-    printf("Digite o Número de Pontos Turísticos: ");
-    scanf("%d", &pontosTuristicos1);
+    for (int i = 0; i < NUM_CARTAS; ++i) {
+        printf("=== Cadastro da Carta %d ===\n", i + 1);
+        cartas[i].estado = read_estado("Digite o estado (A-H): ");
+        read_line("Digite o código da carta (ex: A01): ", cartas[i].codigo, MAX_COD);
+        read_line("Digite o nome da cidade: ", cartas[i].nomeCidade, MAX_NOME);
+        cartas[i].populacao = read_int("Digite a população: ");
+        cartas[i].area = read_float("Digite a área (em km²): ");
+        cartas[i].pib = read_float("Digite o PIB (em bilhões de reais): ");
+        cartas[i].pontosTuristicos = read_int("Digite o número de pontos turísticos: ");
+        printf("\n");
+    }
 
-    // =========================
-    // Entrada de dados da Carta 2
-    // =========================
-    printf("\n=== Cadastro da Carta 2 ===\n");
-    printf("Digite o Estado (A-H): ");
-    scanf(" %c", &estado2);
-
-    printf("Digite o Código da carta (ex: B02): ");
-    scanf("%s", codigo2);
-
-    printf("Digite o Nome da Cidade: ");
-    scanf(" %[^\n]", nomeCidade2);
-
-    printf("Digite a População: ");
-    scanf("%d", &populacao2);
-
-    printf("Digite a Área (em km²): ");
-    scanf("%f", &area2);
-
-    printf("Digite o PIB (em bilhões de reais): ");
-    scanf("%f", &pib2);
-
-    printf("Digite o Número de Pontos Turísticos: ");
-    scanf("%d", &pontosTuristicos2);
-
-    // =========================
-    // Exibição das informações
-    // =========================
-    printf("\n===== CARTA 1 =====\n");
-    printf("Estado: %c\n", estado1);
-    printf("Código: %s\n", codigo1);
-    printf("Nome da Cidade: %s\n", nomeCidade1);
-    printf("População: %d\n", populacao1);
-    printf("Área: %.2f km²\n", area1);
-    printf("PIB: %.2f bilhões de reais\n", pib1);
-    printf("Número de Pontos Turísticos: %d\n", pontosTuristicos1);
-
-    printf("\n===== CARTA 2 =====\n");
-    printf("Estado: %c\n", estado2);
-    printf("Código: %s\n", codigo2);
-    printf("Nome da Cidade: %s\n", nomeCidade2);
-    printf("População: %d\n", populacao2);
-    printf("Área: %.2f km²\n", area2);
-    printf("PIB: %.2f bilhões de reais\n", pib2);
-    printf("Número de Pontos Turísticos: %d\n", pontosTuristicos2);
+    for (int i = 0; i < NUM_CARTAS; ++i) {
+        printf("=== Carta %d ===\n", i + 1);
+        printf("Estado: %c\n", cartas[i].estado);
+        printf("Código: %s\n", cartas[i].codigo);
+        printf("Nome da Cidade: %s\n", cartas[i].nomeCidade);
+        printf("População: %d habitantes\n", cartas[i].populacao);
+        printf("Área: %.2f km²\n", cartas[i].area);
+        printf("PIB: %.2f bilhões de reais\n", cartas[i].pib);
+        printf("Número de Pontos Turísticos: %d\n\n", cartas[i].pontosTuristicos);
+    }
 
     return 0;
 }
-
